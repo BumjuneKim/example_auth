@@ -6,9 +6,6 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <script>
         $(document).ready(function() {
-
-
-
             // 로그인
             $('#login_btn').click(function () {
                 const myId = $('#my_id').val()
@@ -30,8 +27,11 @@
 
             // 토큰 체크
             $('#check_token').click(function() {
-
                 function parseCookie(str) {
+                    if (!str) {
+                        return {}
+                    }
+
                     return str
                         .split(';')
                         .map(v => v.split('='))
@@ -43,7 +43,6 @@
 
                 const cookies = parseCookie(document.cookie)
 
-                // console.log(parseCookie(document.cookie))
                 $.ajax({
                     type: "GET",
                     url: "http://localhost:3000/check_token",
@@ -57,6 +56,9 @@
                     data: {},
                     success: function(response){ // 서버에서 준 결과를 response라는 변수에 담음
                         console.log(response) // 서버에서 준 결과를 이용해서 나머지 코드를 작성
+                    },
+                    error: function(e) {
+                        console.log(e.responseJSON.errorMessage)
                     }
                 })
             })

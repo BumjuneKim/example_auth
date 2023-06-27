@@ -4,6 +4,21 @@ const jwt = require("jsonwebtoken");
 const app = express();
 const port = 3000;
 
+const authMiddleware = (req, res, next) => {
+    const { authorization } = req.headers;
+    const [authType, accessToken] = (authorization || "").split(" ");
+
+    if (!accessToken || authType !== "Bearer") {
+        return res.status(401).send({errorMessage: "로그인 후 이용 가능한 기능입니다."});
+    }
+
+    const isAccessTokenValidate = validateAccessToken(accessToken)
+    if (!isAccessTokenValidate) {
+        return res.status(401).send({errorMessage: "잘못된 토큰"});
+    }
+
+    return next()
+}
 
 app.set('view engine', 'ejs');
 app.engine('html', require('ejs').renderFile);
@@ -42,22 +57,6 @@ function validateAccessToken(accessToken) {
     }
 }
 
-const authMiddleware = (req, res, next) => {
-    const { authorization } = req.headers;
-    const [authType, accessToken] = (authorization || "").split(" ");
-
-    if (!accessToken || authType !== "Bearer") {
-        return res.status(401).send({errorMessage: "로그인 후 이용 가능한 기능입니다."});
-    }
-
-    const isAccessTokenValidate = validateAccessToken(accessToken)
-    if (!isAccessTokenValidate) {
-        return res.status(401).send({errorMessage: "잘못된 토큰"});
-    }
-
-    return next()
-}
-
 // const testMiddleWare = (req, res, next) => {
 //     console.log('testMiddleware')
 //     console.log('testMiddleware')
@@ -67,18 +66,14 @@ const authMiddleware = (req, res, next) => {
 // }
 
 // /check_token => authMiddleware => testMiddleware => 비로소 API를 호출하고 싶다.
-
-
 // 선행작업 => 권한체크
 //         => validation 체크
-
 // 클라이언트가 요청 --->  서버 -->  (authMiddleware)-> next ->  API를 호출한다. (API 가 일을 한다.) ---> 응답 ---> 클라이언트 받는다.
 
 app.get('/check_token', authMiddleware, (req, res) => {
     console.log('인증이 되었으므로 다음 로직 실행')
     return res.status(200).send({message: 'success'});
 })
-
 
 app.post('/create_token', authMiddleware, (req, res) => {
 
@@ -95,7 +90,6 @@ app.post('/test_api3', authMiddleware, (req, res) => {
 app.post('/test_api4', authMiddleware, (req, res) => {
 
 })
-
 
 app.listen(port, () => {
     console.log(port, '포트로 서버가 열렸어요!');
